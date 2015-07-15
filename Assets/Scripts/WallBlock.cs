@@ -9,8 +9,6 @@ public class WallBlock : MonoBehaviour {
     public int map_i;
     public int map_j;
     public float maxHeight = 3;
-    public float moveX_Speed = 1f;
-    public float moveY_Speed = 1f;
     public float moveZ_Speed = 0.2f;
     public enum BLOCK { STATIC, DRAG, CONFIRM };
     public BLOCK block;

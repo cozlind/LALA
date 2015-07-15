@@ -9,16 +9,28 @@ public class BodyUpBlock : MonoBehaviour {
     void OnMouseOver()
     {
     }
-    void OnMouseDown()
+    void OnMouseDrag()
     {
-        if (Input.GetMouseButton(0) && GlobalController.mouse == GlobalController.MOUSE.STATIC)
+        if (Input.GetMouseButton(0) && dragUpBlock.GetComponent<DragUpBlock>().block == DragUpBlock.BLOCK.STATIC)
         {
             switch (block)
             {
                 case BLOCK.STATIC:
                     block = BLOCK.DRAG;
                     dragUpBlock.GetComponent<DragUpBlock>().block = DragUpBlock.BLOCK.DRAG;
-                    GlobalController.click = true;
+                    break;
+            }
+        }
+    }
+    void OnMouseUp()
+    {
+        if (Input.GetMouseButtonUp(0) && dragUpBlock.GetComponent<DragUpBlock>().block == DragUpBlock.BLOCK.DRAG)
+        {
+            switch (block)
+            {
+                case BLOCK.DRAG:
+                    block = BLOCK.CONFIRM;
+                    dragUpBlock.GetComponent<DragUpBlock>().block = DragUpBlock.BLOCK.CONFIRM;
                     break;
             }
         }

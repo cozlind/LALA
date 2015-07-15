@@ -9,16 +9,28 @@ public class HeadWallBlock : MonoBehaviour {
     void OnMouseOver()
     {
     }
-    void OnMouseDown()
+    void OnMouseDrag()
     {
-        if (Input.GetMouseButton(0) && GlobalController.mouse == GlobalController.MOUSE.STATIC)
+        if (Input.GetMouseButton(0) && wallBlock.GetComponent<WallBlock>().block == WallBlock.BLOCK.STATIC)
         {
             switch (block)
             {
                 case BLOCK.STATIC:
                     block = BLOCK.DRAG;
                     wallBlock.GetComponent<WallBlock>().block = WallBlock.BLOCK.DRAG;
-                    GlobalController.click = true;
+                    break;
+            }
+        }
+    }
+    void OnMouseUp()
+    {
+        if (Input.GetMouseButtonUp(0) && wallBlock.GetComponent<WallBlock>().block == WallBlock.BLOCK.DRAG)
+        {
+            switch (block)
+            {
+                case BLOCK.DRAG:
+                    block = BLOCK.CONFIRM;
+                    wallBlock.GetComponent<WallBlock>().block = WallBlock.BLOCK.CONFIRM;
                     break;
             }
         }

@@ -3,14 +3,13 @@ using System.Collections;
 
 public class DragBlock : MonoBehaviour {
 
-    public GameObject centerCube;
     public GameObject headBlock;
     public GameObject bodyBlock;
     public int map_i;
     public int map_j;
-    public float maxHeight = GlobalController.maxHeight;
-    public float moveX_Speed = 1f;
-    public float moveY_Speed = 1f;
+    public float maxHeight;
+
+    public float posYBasic;
     public float moveZ_Speed = 0.2f;
     public enum BLOCK { STATIC, DRAG, CONFIRM };
     public BLOCK block;
@@ -21,6 +20,8 @@ public class DragBlock : MonoBehaviour {
     private int mapValue1=0;
     void Start()
     {
+        maxHeight = GlobalController.maxHeight;
+        posYBasic=headBlock.transform.position.y;
         if (asMove == null)
         {
             asMove = GameObject.Find("AudioWallMove").GetComponent<AudioSource>();
@@ -31,18 +32,7 @@ public class DragBlock : MonoBehaviour {
     }
     void OnMouseDown()
     {
-        //if (Input.GetMouseButton(0)&&GlobalController.mouse==GlobalController.MOUSE.STATIC)
-        //{
-        //    switch (block)
-        //    {
-        //        case BLOCK.STATIC:
-        //            block = BLOCK.DRAG;
-        //            mapValue1 =System.Convert.ToInt32(bodyBlock.transform.localScale.y);
-        //            Debug.Log(mapValue1);
-        //            GlobalController.click = true;
-        //            break;
-        //    }
-        //}
+       
     }
     void Update()
     {
@@ -56,7 +46,7 @@ public class DragBlock : MonoBehaviour {
                         mapValue1 = System.Convert.ToInt32(bodyBlock.transform.localScale.y);
                         //Debug.Log("mapValue1:" + mapValue1);
                         Cursor.visible = false;
-                        Cursor.lockState = CursorLockMode.Locked;
+                        //Cursor.lockState = CursorLockMode.Locked;
                     }
                     //bodyBlock
                     float mousX = bodyBlock.transform.localScale.x;
@@ -87,8 +77,8 @@ public class DragBlock : MonoBehaviour {
                         bodyBlock.transform.localScale = new Vector3(mousX, mousY, mousZ);
                         bodyBlock.transform.position = new Vector3(bodyBlock.transform.position.x, mousY / 2 - 0.45f, bodyBlock.transform.position.z);
                         //headBlock
-                        mousY = bodyBlock.transform.localScale.y + 0.4f;
-                        headBlock.transform.position = new Vector3(headBlock.transform.position.x, mousY - 0.4f, headBlock.transform.position.z);
+                        mousY = bodyBlock.transform.localScale.y;
+                        headBlock.transform.position = new Vector3(headBlock.transform.position.x, posYBasic + mousY, headBlock.transform.position.z);
                     }
                     if (GlobalController.mouse == GlobalController.MOUSE.CONFIRM)
                     {
@@ -100,7 +90,7 @@ public class DragBlock : MonoBehaviour {
                     break;
                 case BLOCK.CONFIRM:
                     Cursor.visible = true;
-                    Cursor.lockState = CursorLockMode.None;
+                    //Cursor.lockState = CursorLockMode.None;
 
                     mousY = System.Convert.ToInt32(bodyBlock.transform.localScale.y);
                     int mapValue2 = (int)mousY;
@@ -112,11 +102,12 @@ public class DragBlock : MonoBehaviour {
                     scaleY = mousY;
                     bodyBlock.GetComponent<Renderer>().material.SetTextureScale("_MainTex", new Vector2(scaleX, scaleY));
                     //headBlock
-                    mousY = bodyBlock.transform.localScale.y + 0.4f;
-                    headBlock.transform.position = new Vector3(headBlock.transform.position.x, mousY - 0.4f, headBlock.transform.position.z);
+                    mousY = bodyBlock.transform.localScale.y;
+                    headBlock.transform.position = new Vector3(headBlock.transform.position.x, posYBasic + mousY, headBlock.transform.position.z);
                     //更新地图数据
                     MapController.map[map_i, map_j] = mapValue2;
                     EnergyController.makeValue(mapValue2 - mapValue1);
+
                     bodyBlock.GetComponent<BodyBlock>().block = BodyBlock.BLOCK.STATIC;
                     headBlock.GetComponent<HeadBlock>().block = HeadBlock.BLOCK.STATIC;
                     block = BLOCK.STATIC;

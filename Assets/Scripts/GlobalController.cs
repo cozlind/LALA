@@ -88,39 +88,7 @@ public class GlobalController : MonoBehaviour
     }
     void Update()
     {
-        //#region 方块控制
-        //for (int i = 0; i < woodenBlock.GetLength(0); i++)
-        //{
-        //    for (int j = 0; j < woodenBlock.GetLength(1); j++)
-        //    {
-        //        if (woodenBlock[i, j] > 0)
-        //        {
-        //            map[i, j] = woodenBlock[i, j];
-        //        }
-        //    }
-        //}
-        //#endregion
-        #region 鼠标控制
-        if (Input.GetMouseButtonDown(0))
-        {
-            switch (mouse)
-            {
-                case MOUSE.STATIC:
-                    if (click)
-                    {
-                        mouse = MOUSE.DRAG;
-                        click = false;
-                    }
-                    break;
-                case MOUSE.DRAG:
-                    mouse = MOUSE.CONFIRM;
-                    break;
-                case MOUSE.CONFIRM:
-                    mouse = MOUSE.STATIC;
-                    break;
-            }
-        }
-        #endregion
+       
     }
     public void restart()
     {

@@ -54,9 +54,6 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="UnityVS.LALA.CSharp.Plugins.csproj">
@@ -92,6 +89,7 @@
     <Compile Include="Assets\Scripts\StatueRotate.cs" />
     <Compile Include="Assets\Scripts\WallBlock.cs" />
     <Compile Include="Assets\Scripts\WoodenBlock.cs" />
+    <Compile Include="Assets\Scripts\test.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\BlendModesOverlay.shader" />

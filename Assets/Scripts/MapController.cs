@@ -198,25 +198,6 @@ public class MapController : MonoBehaviour
         }
         return true;
     }
-    //public Vector3 getV3(int map_i, int map_j)
-    //{
-    //    int height = map[map_i, map_j];
-    //    float x = -1, y = 0, z = -1;
-    //    switch (map_j)
-    //    {
-    //        case 0: x = -1; break;
-    //        case 1: x = 0; break;
-    //        case 2: x = 1; break;
-    //    }
-    //    switch (map_i)
-    //    {
-    //        case 0: z = -1; break;
-    //        case 1: z = 0; break;
-    //        case 2: z = 1; break;
-    //    }
-    //    y = -height*0.05f +height+ 0.8f;
-    //    return new Vector3(x, y, z);
-    //}
     public Vector3 getV3(int map_i, int map_j)
     {
         int map_h = map[map_i, map_j];
