@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CameraController : MonoBehaviour {
+public class CameraController : MonoBehaviour
+{
 
     public GameObject target;
     public float minFov = 3.5f;
@@ -15,8 +16,45 @@ public class CameraController : MonoBehaviour {
     private Quaternion originRotation;
     public float shake_decay;
     public float shake_intensity;
+
+    private static float startTime = 0f;
+    public static bool isEntering = false;
+    public static bool isEnd = false;
+    void Start()
+    {
+        isEntering = true;
+
+        GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 10;
+        GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = 4;
+    }
     void FixedUpdate()
     {
+        if (isEntering)
+        {
+            startTime += Time.fixedDeltaTime * 10;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 10 - startTime;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(4 - startTime * 0.4f);
+            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize <= 0)
+            {
+                startTime = 0;
+                Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().enabled = false;
+                isEntering = false;
+                UIController.normalUI.SetActive(true);
+            }
+        }
+        if (isEnd)
+        {
+            startTime += Time.fixedDeltaTime * 10;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = startTime;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(startTime * 0.4f);
+            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize >= 9.9f)
+            {
+                startTime = 0;
+                isEnd = false;
+            }
+        }
+
+
         //滚轮缩放
         float fov = Camera.main.orthographicSize;
         fov += -Input.GetAxis("Mouse ScrollWheel") * sensitivity;
@@ -54,4 +92,5 @@ public class CameraController : MonoBehaviour {
         shake_intensity = .15f;
         shake_decay = 0.0024f;
     }
+
 }

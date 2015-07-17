@@ -145,10 +145,11 @@ public class AStarFinder
     }
     public bool getPass(int[,] map,int x1, int y1, int x2, int y2)
     {
-        if (Math.Abs(map[x2, y2] - map[x1, y1]) <= 2 && GlobalController.jumpBlock[x1, y1] > 0)
-        {
-            return true;
-        }
-        return false;
+        //if (Math.Abs(map[x2, y2] - map[x1, y1]) <= 2 && GlobalController.jumpBlock[x1, y1] > 0)
+        //{
+        //    return true;
+        //}
+        //return false;
+        return true;
     }
 }

@@ -1,141 +1,276 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
+using System.Collections.Generic;
 
 public class GlobalController : MonoBehaviour
 {
     public static bool isInteract;
-    public static bool isPlayBtnActive;
+    public static bool isUpdateMap;
+    public static bool isNormalLook;
+    private static bool isInit;
 
-    public GameObject centerCube;
-    public static float maxHeight = 3f;
-    public float moveX_Speed = 1f;
-    public float moveY_Speed = 1f;
-    public float moveZ_Speed = 0.2f;
-    public enum MOUSE { STATIC, DRAG, CONFIRM };
-    public static MOUSE mouse;
-    public static bool click;
+    public GameObject emptyFillCube;
+    private static GameObject Map;
     //地图信息
-    public static int[,] initialMap = new int[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 2 } };
-    public static int[,] map=new int[3,3];
-    public static int startx = 0;
-    public static int starty = 0;
-    public static int endx = 2;
-    public static int endy = 2;
-    public static int[,] vineBlock = new int[3, 3] { { 0,0,1 }, { 0, 0, 0 }, { 0, 0, 0} };//藤蔓方块
-    public static int[,] woodenBlock = new int[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };//木块
-    public static int[,] blackBlock = new int[3, 3]{ { 0,0,0 }, { 1, 0, 0 }, { 0, 0, 0} };//惩罚黑块
-    public static int[,] goldBlock = new int[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 1, 0, 0 } };//奖励金块
-    public static int[,] jumpBlock = new int[3, 3] { { 0, 1, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
-
-    
-    public float startTime = 0f;
-    private bool isEntering = false;
-    private static bool isEnd = false;
-
-    public GameObject normalUI;
-    public GameObject failUI;
-    public GameObject successUI;
-    public static void clearMap()
+    public static int[, ,] map;
+    public static string[, ,] typeMap;
+    public static List<List<List<GameObject>>> rows;
+    public static int startx;
+    public static int starty;
+    public static int startz;
+    public static int endx;
+    public static int endy;
+    public static int endz;
+    public static int maxx;
+    public static int maxy;
+    public static int maxz;
+    //路径信息
+    public static int prex;
+    public static int prey;
+    public static int prez;
+    public static List<SpaceAStarFinder.Node> path;
+    public GameObject mPrefab;
+    void Awake()
     {
-        for (int i = 0; i < initialMap.GetLength(0); i++)
-        {
-            for (int j = 0; j < initialMap.GetLength(1); j++)
-            {
-                map[i, j] = initialMap[i, j];
-            }
-        }
+        Map = GameObject.Find("Map");
     }
     void Start()
     {
-        clearMap(); 
-        isPlayBtnActive = true;
+        clearPath();
+
+        isNormalLook = true;
         isInteract = true;
-        normalUI.SetActive(false);
-        failUI.SetActive(false);
-        successUI.SetActive(false);
-        isEntering = true;
-        Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 10;
-        Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = 4;
-        mouse = MOUSE.STATIC;
-        click = false;
-    }
-    void FixedUpdate()
-    {
-        if (isEntering)
-        {
-            startTime += Time.fixedDeltaTime * 10;
-            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 10 - startTime;
-            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(4 - startTime * 0.4f);
-            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize <= 0)
-            {
-                startTime = 0;
-                Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().enabled = false;
-                isEntering = false;
-                normalUI.SetActive(true);
-            }
-        }
-        if (isEnd)
-        {
-            startTime += Time.fixedDeltaTime * 10;
-            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = startTime;
-            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(startTime * 0.4f);
-            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize>= 9.9f)
-            {
-                startTime = 0;
-                isEnd = false;
-            }
-        }
+        isInit = true;
     }
     void Update()
     {
-       
-    }
-    public void restart()
-    {
-        clearMap();
-        GameObject.Find("Map").GetComponent<MapController>().clearPath();
-        EnergyController.restart();
-        Application.LoadLevel(Application.loadedLevelName);
-    }
-    public void goMainscene()
-    {
-        clearMap();
-        GameObject.Find("Map").GetComponent<MapController>().clearPath();
-        EnergyController.gameOver();
-        Application.LoadLevel("mainscene");
-    }
-    public void fail()
-    {
-        failUI.SetActive(true);
-        EnergyController.gameOver();
-    }
-    public void end()
-    {
-        clearMap();
-        GameObject.Find("Map").GetComponent<MapController>().clearPath();
-        normalUI.SetActive(false);
-        successUI.SetActive(false);
-        failUI.SetActive(false);
-        isEnd = true;
-        Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().enabled = true;
-        EnergyController.end();
-        isInteract = false;
-        if (EnergyController.energyQuantity <= 0)
+        if (isInit)
         {
-            fail();
+            resetMap();
+            initRows();
+            isInit = false;
+        }
+        if (isUpdateMap)
+        {
+            resetMap();
+            isUpdateMap = false;
+            //GlobalController.printMap();
+        }
+    }
+    #region 隧道模式TubeBlock
+    public static void initRows()
+    {
+        rows = new List<List<List<GameObject>>>();
+        for (int i = 0; i < maxx; i++)
+        {
+            rows.Add(new List<List<GameObject>>());
+            for (int j = 0; j < maxy; j++)
+            {
+                rows[i].Add(new List<GameObject>());
+            }
+        }
+        GameObject[] blocks = GameObject.FindGameObjectsWithTag("TubeBlock");
+        foreach (var block in blocks)
+        {
+            rows[System.Convert.ToInt32(block.transform.position.x)][System.Convert.ToInt32(block.transform.position.y)].Add(block);
+        }
+    }
+    public static List<GameObject> getRow(int x, int y)
+    {
+        return rows[x][y];
+    }
+    //public static void printRow(int x, int y,string head="")
+    //{
+    //    String str = head;
+    //    foreach (var item in rows[x][y])
+    //    {
+    //        str += "(" + item.GetComponent<ExchangeBlock>().x + "," + item.GetComponent<ExchangeBlock>().y + "," + item.GetComponent<ExchangeBlock>().z + ") ";
+    //    }
+    //    Debug.Log(str);
+    //}
+    public static void exchangeRow(int x, int y, string mode)
+    {
+        List<GameObject> preRow = getRow(x, y);
+        switch (mode)
+        {
+            case "Up":
+                List<GameObject> upRow = getRow(x, y + 1);
+                foreach (var rowItem in upRow)
+                {
+                    int z = System.Convert.ToInt32(rowItem.transform.position.z);
+                    rowItem.transform.position = new Vector3(x, y, z);
+                    rowItem.SendMessage("updatePosY", y);
+                }
+                foreach (var rowItem in preRow)
+                {
+                    rowItem.SendMessage("updatePosY", y + 1);
+                }
+                rows[x][y + 1] = preRow;
+                rows[x][y] = upRow;
+                break;
+            case "Down":
+                List<GameObject> downRow = getRow(x, y - 1);
+                foreach (var rowItem in downRow)
+                {
+                    int z = System.Convert.ToInt32(rowItem.transform.position.z);
+                    rowItem.transform.position = new Vector3(x, y, z);
+                    rowItem.SendMessage("updatePosY", y);
+                }
+                foreach (var rowItem in preRow)
+                {
+                    rowItem.SendMessage("updatePosY", y - 1);
+                }
+                rows[x][y - 1] = preRow;
+                rows[x][y] = downRow;
+                break;
+        }
+    }
+    public void look()
+    {
+        GameObject[] blocks = GameObject.FindGameObjectsWithTag("TubeBlock");
+        if (isNormalLook)
+        {
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                GameObject block = blocks[i];
+                block.GetComponent<Renderer>().enabled = false;
+                block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = true;
+            }
+            for (int i = 0; i < maxx; i++)
+            {
+                for (int j = 0; j < maxy; j++)
+                {
+                    for (int k = 0; k < maxz; k++)
+                    {
+                        if (map[i, j, k] == 0)
+                        {
+                            GameObject objPrefab = Instantiate(emptyFillCube, new Vector3(i, j, k), Quaternion.identity) as GameObject;
+                            objPrefab.tag = "Temp";
+                        }
+                    }
+                }
+            }
+            isNormalLook = false;
         }
         else
         {
-            success();
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                GameObject block = blocks[i];
+                block.GetComponent<Renderer>().enabled = true;
+                block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = false;
+            }
+            GameObject[] tempObj = GameObject.FindGameObjectsWithTag("Temp");
+            foreach (var tempItem in tempObj)
+            {
+                Destroy(tempItem);
+            }
+            isNormalLook = true;
         }
     }
-    public void success()
+    #endregion
+    public static void clearMap()
     {
-        successUI.SetActive(true);
+        map = new int[maxx, maxy, maxz];
+        typeMap = new string[maxx, maxy, maxz];
     }
-    public void nextLevel()
+    public static void checkMap()
     {
-        EnergyController.nextLevel();
-        Application.LoadLevel(Application.loadedLevel + 1);
+        for (int j = maxy - 1; j > 0; j--)
+        {
+            for (int i = 0; i < maxx; i++)
+            {
+                for (int k = 0; k < maxz; k++)
+                {
+                    if (map[i, j, k] != 0 && map[i, j - 1, k] != 0)
+                    {
+                        map[i, j - 1, k] = -1;
+                    }
+                }
+            }
+        }
+    }
+    public static void resetMap()
+    {
+        clearMap();
+        List<GameObject> blocks = new List<GameObject>();
+        for (int i = 0; i < Map.transform.childCount; i++)
+        {
+            GameObject block = Map.transform.GetChild(i).gameObject;
+            blocks.Add(block);
+            block.SendMessage("updateMap");
+        }
+        checkMap();
+    }
+    public static void printMap()
+    {
+        for (int j = 0; j < map.GetLength(1); j++)
+        {
+            string line = "";
+            for (int k = map.GetLength(2) - 1; k >= 0; k--)
+            {
+                for (int i = 0; i < map.GetLength(0); i++)
+                {
+                    line += map[i, j, k].ToString().PadLeft(2);
+                }
+                line += "\n";
+            }
+            Debug.Log(line);
+        }
+    }
+    public static void printTypeMap()
+    {
+        for (int j = 0; j < typeMap.GetLength(1); j++)
+        {
+            string line = "";
+            for (int k = typeMap.GetLength(2) - 1; k >= 0; k--)
+            {
+                for (int i = 0; i < typeMap.GetLength(0); i++)
+                {
+                    line += typeMap[i, j, k];
+                }
+                line += "\n";
+            }
+            Debug.Log(line);
+        }
+    }
+    public static void clearPath()
+    {
+        path = new List<SpaceAStarFinder.Node>();
+    }
+    public void printPath()
+    {
+        String str = "";
+        foreach (var item in path)
+        {
+            str += "(" + item.x + "," + item.y + "," + item.z + ") ";
+            GameObject objPrefab = Instantiate(mPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+            objPrefab.transform.position = new Vector3(item.x, item.y, item.z);
+        }
+        Debug.Log("Path:" + str);
+    }
+    public void play()
+    {
+        if (UIController.isPlayBtnActive)
+        {
+            prex = startx;
+            prey = starty;
+            prez = startz;
+            SpaceAStarFinder asf = new SpaceAStarFinder();
+            path = asf.find(map, startx, starty, startz, endx, endy, endz);
+            if (path == null)
+            {
+                Camera.main.GetComponent<CameraController>().shake();
+                return;
+            }
+            else
+            {
+                DriveController.isPlay = true;
+                UIController.isPlayBtnActive = false;
+                isInteract = false;
+                //printPath();
+            }
+        }
     }
 }

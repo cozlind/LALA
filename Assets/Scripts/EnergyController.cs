@@ -28,7 +28,7 @@ public class EnergyController : MonoBehaviour {
         }
         if (energyQuantity <= 0)
         {
-            GameObject.Find("GlobalController").GetComponent<GlobalController>().fail();
+            GameObject.Find("UI").GetComponent<UIController>().fail();
         }
         if (energyQuantity - preLevelConsume > 0)
         {
@@ -48,9 +48,9 @@ public class EnergyController : MonoBehaviour {
         energyQuantity -= preLevelConsume;
         preLevelConsume = 0;
     }
-    public static void unrecover(int x,int y)
+    public static void unrecover(int x,int y,int z)
     {
-        energyQuantity -= GlobalController.map[x, y];
+        energyQuantity -= y;
     }
     public static void restart()
     {
@@ -63,9 +63,9 @@ public class EnergyController : MonoBehaviour {
         preLevelConsume = 0;
         nextLevelReward = 0;
     }
-    public static void reward(int x,int y)
+    public static void reward(int x,int y,int z)
     {
-        nextLevelReward = GlobalController.map[x, y]*2;
+        nextLevelReward = y*2;
     }
     public static void nextLevel()
     {

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: f714869c6fba2304b925f8730a725183
-timeCreated: 1436660531
+timeCreated: 1437097564
 licenseType: Free
 ModelImporter:
   serializedVersion: 18
@@ -13,7 +13,7 @@ ModelImporter:
     9500000: //RootNode
   materials:
     importMaterials: 1
-    materialName: 0
+    materialName: 1
     materialSearch: 1
   animations:
     legacyGenerateAnimations: 4
@@ -50,7 +50,7 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  importAnimation: 0
+  importAnimation: 1
   copyAvatar: 0
   humanDescription:
     human: []

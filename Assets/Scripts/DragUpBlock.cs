@@ -7,20 +7,20 @@ public class DragUpBlock : MonoBehaviour {
     public GameObject bodyUpBlock;
     public int map_i;
     public int map_j;
-    public float maxHeight;
+    public float maxy;
 
-    public float posYBasic;
-    public float moveZ_Speed = 0.2f;
+    public float posYBasicOffset;
+    public float dragSpeedY = 0.2f;
     public enum BLOCK { STATIC, DRAG, CONFIRM };
     public BLOCK block;
     public AudioSource asMove;
     private bool isPlayerAs = false;
     private float upMoveY = 0.0f;
     private bool isFirstMove = false;
-    private int mapValue1=0;
+    private int energyValue1=0;
     void Start()
     {
-        maxHeight = GlobalController.maxHeight;
+        maxy = GlobalController.maxy;
         if (asMove == null)
         {
             asMove = GameObject.Find("AudioWallMove").GetComponent<AudioSource>();
@@ -42,8 +42,8 @@ public class DragUpBlock : MonoBehaviour {
                 case BLOCK.DRAG:
                     if (Cursor.visible)
                     {
-                        mapValue1 = System.Convert.ToInt32(bodyUpBlock.transform.localScale.y);
-                        //Debug.Log("mapValue1:" + mapValue1);
+                        energyValue1 = System.Convert.ToInt32(bodyUpBlock.transform.localScale.y);
+                        //Debug.Log("energyValue1:" + energyValue1);
                         Cursor.visible = false;
                         //Cursor.lockState = CursorLockMode.Locked;
                     }
@@ -51,7 +51,7 @@ public class DragUpBlock : MonoBehaviour {
                     float mousX = bodyUpBlock.transform.localScale.x;
                     float mousY = bodyUpBlock.transform.localScale.y;
                     float mousZ = bodyUpBlock.transform.localScale.z;
-                    float input = Input.GetAxis("Mouse Y") * moveZ_Speed;
+                    float input = Input.GetAxis("Mouse Y") * dragSpeedY;
                     input = input > 0 ? input : 0;
                     mousY += input;
                     //调整贴图
@@ -73,20 +73,13 @@ public class DragUpBlock : MonoBehaviour {
                         }
                         upMoveY = mousY;
                     }
-                    if (mousY >= 0 && mousY <= GlobalController.maxHeight && (mousY < EnergyController.energyQuantity - EnergyController.preLevelConsume || Input.GetAxis("Mouse Y") * moveZ_Speed < 0))
+                    if (mousY >= 0 && mousY <= GlobalController.maxy && (mousY < EnergyController.energyQuantity - EnergyController.preLevelConsume || Input.GetAxis("Mouse Y") * dragSpeedY < 0))
                     {
                         bodyUpBlock.transform.localScale = new Vector3(mousX, mousY, mousZ);
                         bodyUpBlock.transform.position = new Vector3(bodyUpBlock.transform.position.x, mousY / 2 - 0.45f, bodyUpBlock.transform.position.z);
                         //headUpBlock
                         mousY = bodyUpBlock.transform.localScale.y;
-                        headUpBlock.transform.position = new Vector3(headUpBlock.transform.position.x, posYBasic + mousY, headUpBlock.transform.position.z);
-                    }
-                    if (GlobalController.mouse == GlobalController.MOUSE.CONFIRM)
-                    {
-                        bodyUpBlock.GetComponent<BodyUpBlock>().block = BodyUpBlock.BLOCK.CONFIRM;
-                        headUpBlock.GetComponent<HeadUpBlock>().block = HeadUpBlock.BLOCK.CONFIRM;
-                        block = BLOCK.CONFIRM;
-                        GlobalController.mouse = GlobalController.MOUSE.STATIC;
+                        headUpBlock.transform.position = new Vector3(headUpBlock.transform.position.x, posYBasicOffset + mousY, headUpBlock.transform.position.z);
                     }
                     break;
                 case BLOCK.CONFIRM:
@@ -94,8 +87,8 @@ public class DragUpBlock : MonoBehaviour {
                     //Cursor.lockState = CursorLockMode.None;
 
                     mousY = System.Convert.ToInt32(bodyUpBlock.transform.localScale.y);
-                    int mapValue2 = (int)mousY;
-                    //Debug.Log(mapValue2);
+                    int energyValue2 = (int)mousY;
+                    //Debug.Log(energyValue2);
                     bodyUpBlock.transform.localScale = new Vector3(bodyUpBlock.transform.localScale.x, mousY, bodyUpBlock.transform.localScale.z);
                     bodyUpBlock.transform.position = new Vector3(bodyUpBlock.transform.position.x, mousY / 2 - 0.45f, bodyUpBlock.transform.position.z);
                     //调整贴图
@@ -104,10 +97,10 @@ public class DragUpBlock : MonoBehaviour {
                     bodyUpBlock.GetComponent<Renderer>().material.SetTextureScale("_MainTex", new Vector2(scaleX, scaleY));
                     //headUpBlock
                     mousY = bodyUpBlock.transform.localScale.y;
-                    headUpBlock.transform.position = new Vector3(headUpBlock.transform.position.x, posYBasic + mousY, headUpBlock.transform.position.z);
+                    headUpBlock.transform.position = new Vector3(headUpBlock.transform.position.x, posYBasicOffset + mousY, headUpBlock.transform.position.z);
                     //更新地图数据
-                    MapController.map[map_i, map_j] = mapValue2;
-                    EnergyController.makeValue(mapValue2 - mapValue1);
+                    GlobalController.isUpdateMap = true;
+                    EnergyController.makeValue(energyValue2 - energyValue1);
                     bodyUpBlock.GetComponent<BodyUpBlock>().block = BodyUpBlock.BLOCK.STATIC;
                     headUpBlock.GetComponent<HeadUpBlock>().block = HeadUpBlock.BLOCK.STATIC;
                     block = BLOCK.STATIC;
