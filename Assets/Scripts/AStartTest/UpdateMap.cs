@@ -13,7 +13,6 @@ public class UpdateMap : MonoBehaviour {
     }
     void updateToMap()
     {
-        //TestController.isClearMap = true;
         x = (int)transform.position.x;
         y = (int)transform.position.y;
         z = (int)transform.position.z;

@@ -9,7 +9,7 @@ public class EnergyController : MonoBehaviour {
     public static int nextLevelReward=0;
     public static int rewardValue;
     public static bool haveEnergy = true;
-    private const int fixedEnergy = 30;
+    private const int fixedEnergy = 100;
     void Start()
     {
         energyQuantity =fixedEnergy;
@@ -65,7 +65,7 @@ public class EnergyController : MonoBehaviour {
     }
     public static void reward(int x,int y,int z)
     {
-        nextLevelReward = y*2;
+        energyQuantity += y * 2;
     }
     public static void nextLevel()
     {

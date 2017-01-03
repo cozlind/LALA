@@ -17,6 +17,9 @@ public class DriveController : MonoBehaviour
     public static AudioSource[] asCube;
     private static float playRun = 0.0f;
     private static bool isRun = false;
+
+    private static bool isGoldLeft;
+    private static bool isGoldRight;
     void Start()
     {
         tPos = GameObject.Find("TargetPos").transform;
@@ -26,21 +29,26 @@ public class DriveController : MonoBehaviour
         asCube[1] = GameObject.Find("AudioActorRun").GetComponent<AudioSource>();
         isPlay = false;
         index = 1;
+        isGoldLeft = false;
+        isGoldRight = false;
+        prex = GlobalController.startx;
+        prey = GlobalController.starty;
+        prez = GlobalController.startz;
     }
-
-   void Update()
+    void Update()
     {
-        float v = Vector3.Distance(tPos.transform.position,actor.transform.position);
-        if (v < 0.35f) {
-            actor.transform.position =Vector3.Slerp(actor.transform.position, tPos.transform.position,0.2f);
+        float v = Vector3.Distance(tPos.transform.position, actor.transform.position);
+        if (v < 0.35f)
+        {
+            actor.transform.position = Vector3.Slerp(actor.transform.position, tPos.transform.position, 0.2f);
             if (!actor.GetComponent<Rigidbody>().isKinematic)
                 actor.GetComponent<Rigidbody>().isKinematic = true;
-            if (v < 0.05f) {
+            if (v < 0.05f)
+            {
                 tPos.transform.position = zero;
                 isPlay = true;
             }
         }
-    
         if (isPlay)
         {
             if (asCube[1].isPlaying)
@@ -77,12 +85,15 @@ public class DriveController : MonoBehaviour
             }
             else
             {
-                if (GlobalController.typeMap[prex, prey, prez] == "Vine")
+                //藤蔓方块
+                if (GlobalController.typeMap[prex, prey, prez].Equals("Vine"))
                 {
+                    CameraController.isChangeColor = true;
                     Camera.main.GetComponent<CameraController>().shake();
                     GlobalController.clearPath();
                     break;
                 }
+                //黑块和金块
                 switch (GlobalController.typeMap[prex, prey, prez])
                 {
                     case "Black":
@@ -91,14 +102,38 @@ public class DriveController : MonoBehaviour
                     case "Gold":
                         EnergyController.reward(prex, prey, prez);
                         break;
+                    case "GoldLeft":
+                        isGoldLeft = true;
+                        if (isGoldLeft && isGoldRight)
+                        {
+                            EnergyController.reward(prex, prey, prez);
+                        }
+                        break;
+                    case "GoldRight":
+                        isGoldRight = true;
+                        if (isGoldLeft && isGoldRight)
+                        {
+                            EnergyController.reward(prex, prey, prez);
+                        }
+                        break;
                 }
                 int option = 1;
-                if (Math.Abs(prez - node.z) == 2)
+                if (Math.Abs(prey - node.y) == 2)
                 {
                     option = 2;
                 }
-                tPos.position = getV3(node.x, node.y, node.z);
-                blockJump(actor.transform, getV3(node.x, node.y, node.z), option);
+                if (GlobalController.typeMap[prex, prey, prez].StartsWith("Move"))
+                {
+                    tPos.position = getV3(node.x, node.y, node.z);
+                    GameObject moveBlock = GlobalController.getMoveBlock(prex, prey, prez);
+                    moveBlock.GetComponent<MoveBlock>().startMove();
+                    GlobalController.typeMap[prex, prey, prez] = "0";//简单替换，可能会有问题
+                }
+                else
+                {
+                    tPos.position = getV3(node.x, node.y, node.z);
+                    blockJump(actor.transform, getV3(node.x, node.y, node.z), option);
+                }
                 prex = node.x;
                 prey = node.y;
                 prez = node.z;
@@ -129,7 +164,7 @@ public class DriveController : MonoBehaviour
         {
             if (m == 1)
             {
-                fy = 12.0f;
+                fy = 11.1f;
             }
             else if (m == 2)
             {

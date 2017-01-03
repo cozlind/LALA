@@ -18,17 +18,34 @@ public class CameraController : MonoBehaviour
     public float shake_intensity;
 
     private static float startTime = 0f;
-    public static bool isEntering = false;
-    public static bool isEnd = false;
+    public static bool isEntering;
+    public static bool isEnd;
+    public static bool isMenuOn;
+    public static bool isMenuOff;
+    public static bool isChangeColor;
     void Start()
     {
         isEntering = true;
-
+        isEnd = false;
+        isMenuOn = false;
+        isMenuOff = false;
+        isChangeColor = false;
+        GetComponent<Camera>().backgroundColor = new Color(162, 180, 138f, 0) / 255;
         GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 10;
         GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = 4;
     }
     void FixedUpdate()
     {
+        if (isChangeColor)
+        {
+            Color startColor = new Color(162, 180, 138f, 0) / 255; ;
+            Color endColor = new Color(142, 142, 142) / 255;
+            GetComponent<Camera>().backgroundColor = Color.Lerp(GetComponent<Camera>().backgroundColor, endColor, 0.04f);
+            if (GetComponent<Camera>().backgroundColor.Equals(endColor))
+            {
+                isChangeColor = false;
+            }
+        }
         if (isEntering)
         {
             startTime += Time.fixedDeltaTime * 10;
@@ -53,7 +70,29 @@ public class CameraController : MonoBehaviour
                 isEnd = false;
             }
         }
-
+        if (isMenuOn)
+        {
+            startTime += Time.fixedDeltaTime * 20;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = startTime;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(startTime * 0.4f);
+            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize >= 3.9f)
+            {
+                startTime = 0;
+                isMenuOn = false;
+            }
+        }
+        if (isMenuOff)
+        {
+            startTime += Time.fixedDeltaTime * 10;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize = 4 - startTime;
+            Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurIterations = (int)(2 - startTime * 0.4f);
+            if (Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().blurSize <= 0)
+            {
+                startTime = 0;
+                Camera.main.GetComponent<UnityStandardAssets.ImageEffects.BlurOptimized>().enabled = false;
+                isMenuOff = false;
+            }
+        }
 
         //滚轮缩放
         float fov = Camera.main.orthographicSize;
@@ -80,9 +119,9 @@ public class CameraController : MonoBehaviour
     }
     //void OnGUI()
     //{
-    //    if (GUI.Button(new Rect(20, 40, 80, 20), "Shake"))
+    //    if (GUI.Button(new Rect(20, 140, 80, 20), "changeColor"))
     //    {
-    //        shake();
+    //        isChangeColor=true;
     //    }
     //}
     public void shake()

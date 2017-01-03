@@ -31,6 +31,7 @@ public class GlobalController : MonoBehaviour
     public static int prez;
     public static List<SpaceAStarFinder.Node> path;
     public GameObject mPrefab;
+    public GameObject shellPrefab;
     void Awake()
     {
         Map = GameObject.Find("Map");
@@ -56,8 +57,29 @@ public class GlobalController : MonoBehaviour
             resetMap();
             isUpdateMap = false;
             //GlobalController.printMap();
+            GlobalController.printTypeMap();
         }
     }
+    #region 动态模式DynamicBlock
+    public static GameObject getMoveBlock(int x, int y, int z)
+    {
+        GameObject[] dynamicBlocks = GameObject.FindGameObjectsWithTag("DynamicBlock");
+        foreach (var block in dynamicBlocks)
+        {
+            if (block.GetComponent<MoveBlock>() != null)
+            {
+                int movex = block.GetComponent<MoveBlock>().x;
+                int movey = block.GetComponent<MoveBlock>().y;
+                int movez = block.GetComponent<MoveBlock>().z;
+                if (x == movex && y == movey && z == movez)
+                {
+                    return block;
+                }
+            }
+        }
+        return null;
+    }
+    #endregion
     #region 隧道模式TubeBlock
     public static void initRows()
     {
@@ -100,11 +122,11 @@ public class GlobalController : MonoBehaviour
                 {
                     int z = System.Convert.ToInt32(rowItem.transform.position.z);
                     rowItem.transform.position = new Vector3(x, y, z);
-                    rowItem.SendMessage("updatePosY", y);
+                    rowItem.SendMessage("updatePosY", y, SendMessageOptions.DontRequireReceiver);
                 }
                 foreach (var rowItem in preRow)
                 {
-                    rowItem.SendMessage("updatePosY", y + 1);
+                    rowItem.SendMessage("updatePosY", y + 1, SendMessageOptions.DontRequireReceiver);
                 }
                 rows[x][y + 1] = preRow;
                 rows[x][y] = upRow;
@@ -115,18 +137,18 @@ public class GlobalController : MonoBehaviour
                 {
                     int z = System.Convert.ToInt32(rowItem.transform.position.z);
                     rowItem.transform.position = new Vector3(x, y, z);
-                    rowItem.SendMessage("updatePosY", y);
+                    rowItem.SendMessage("updatePosY", y, SendMessageOptions.DontRequireReceiver);
                 }
                 foreach (var rowItem in preRow)
                 {
-                    rowItem.SendMessage("updatePosY", y - 1);
+                    rowItem.SendMessage("updatePosY", y - 1, SendMessageOptions.DontRequireReceiver);
                 }
                 rows[x][y - 1] = preRow;
                 rows[x][y] = downRow;
                 break;
         }
     }
-    public void look()
+    public void xray()
     {
         GameObject[] blocks = GameObject.FindGameObjectsWithTag("TubeBlock");
         if (isNormalLook)
@@ -134,8 +156,35 @@ public class GlobalController : MonoBehaviour
             for (int i = 0; i < blocks.Length; i++)
             {
                 GameObject block = blocks[i];
-                block.GetComponent<Renderer>().enabled = false;
-                block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = true;
+                if (block.GetComponent<Renderer>() != null)
+                {
+                    block.GetComponent<Renderer>().enabled = false;
+                    block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = true;
+                }
+                else
+                {
+                    bool isNoShell = true;
+                    block.SendMessage("updateMap");
+                    foreach (var childRenderer in block.GetComponentsInChildren<Renderer>())
+                    {
+                        if (childRenderer.gameObject.name.Equals("Shell"))
+                        {
+                            childRenderer.enabled = true;
+                            isNoShell = false;
+                        }
+                        else
+                        {
+                            childRenderer.enabled = false;
+                        }
+                    }
+                    if (isNoShell)
+                    {
+                        GameObject shellBlock = Instantiate(shellPrefab, block.transform.position, Quaternion.identity) as GameObject;
+                        shellBlock.name = "Shell";
+                        shellBlock.GetComponent<Renderer>().enabled = true;
+                        shellBlock.transform.SetParent(block.transform);
+                    }
+                }
             }
             for (int i = 0; i < maxx; i++)
             {
@@ -158,8 +207,26 @@ public class GlobalController : MonoBehaviour
             for (int i = 0; i < blocks.Length; i++)
             {
                 GameObject block = blocks[i];
-                block.GetComponent<Renderer>().enabled = true;
-                block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = false;
+                if (block.GetComponent<Renderer>() != null)
+                {
+                    block.GetComponent<Renderer>().enabled = true;
+                    block.GetComponent<ExchangeBlock>().shellBlock.GetComponent<Renderer>().enabled = false;
+                }
+                else
+                {
+                    for (int j = 0; j < block.transform.childCount; j++)
+                    {
+                        GameObject child = block.transform.GetChild(j).gameObject;
+                        if (child.name.Equals("Shell"))
+                        {
+                            child.GetComponent<Renderer>().enabled = false;
+                        }
+                        else if (child.GetComponent<Renderer>() != null)
+                        {
+                            child.GetComponent<Renderer>().enabled = true;
+                        }
+                    }
+                }
             }
             GameObject[] tempObj = GameObject.FindGameObjectsWithTag("Temp");
             foreach (var tempItem in tempObj)
@@ -177,15 +244,22 @@ public class GlobalController : MonoBehaviour
     }
     public static void checkMap()
     {
-        for (int j = maxy - 1; j > 0; j--)
+        for (int j = maxy - 1; j >= 0; j--)
         {
             for (int i = 0; i < maxx; i++)
             {
                 for (int k = 0; k < maxz; k++)
                 {
-                    if (map[i, j, k] != 0 && map[i, j - 1, k] != 0)
+                    if (typeMap[i, j, k] == null)
                     {
-                        map[i, j - 1, k] = -1;
+                        typeMap[i, j, k] = "0";
+                    }
+                    if (j > 0)
+                    {
+                        if (map[i, j, k] != 0 && map[i, j - 1, k] != 0)
+                        {
+                            map[i, j - 1, k] = -1;
+                        }
                     }
                 }
             }
@@ -228,7 +302,7 @@ public class GlobalController : MonoBehaviour
             {
                 for (int i = 0; i < typeMap.GetLength(0); i++)
                 {
-                    line += typeMap[i, j, k];
+                    line += typeMap[i, j, k].ToString().PadLeft(9);
                 }
                 line += "\n";
             }

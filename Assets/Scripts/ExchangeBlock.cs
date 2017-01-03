@@ -26,7 +26,7 @@ public class ExchangeBlock : MonoBehaviour
     private bool isPlayerAs = false;
     private bool isFirstMove = false;
     private float upMoveY = 0.0f;
-    void updateMap()
+    public void updateMap()
     {
         updateToMap(x, y, z);
         GlobalController.typeMap[x, y, z] = type;
@@ -108,7 +108,7 @@ public class ExchangeBlock : MonoBehaviour
                         upMoveY = mousY;
                     }
                     float posY = posYBasicOffset + mousY;
-                    if (mousY >= -0.4 && posY < GlobalController.maxy - 0.6 && energyValue2 - energyValue1 < EnergyController.energyQuantity - EnergyController.preLevelConsume)
+                    if (mousY >= -0.5f && posY < GlobalController.maxy - 0.6 && Mathf.Abs(energyValue2 - energyValue1) < EnergyController.energyQuantity - EnergyController.preLevelConsume)
                     {
                         //移动当前row
                         foreach (var rowItem in row)
@@ -139,7 +139,7 @@ public class ExchangeBlock : MonoBehaviour
                     }
                     //更新地图数据
                     GlobalController.isUpdateMap = true;
-                    EnergyController.makeValue(energyValue2 - energyValue1);
+                    EnergyController.makeValue(Mathf.Abs(energyValue2 - energyValue1));
                     //更新状态
                     block = BLOCK.STATIC;
                     isPlayerAs = false;

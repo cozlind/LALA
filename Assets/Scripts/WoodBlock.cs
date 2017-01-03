@@ -7,7 +7,7 @@ public class WoodBlock : MonoBehaviour {
     public int y;
     public int z;
     public string type;
-    void updateMap()
+    public void updateMap()
     {
         updateToMap(x, y, z);
         GlobalController.typeMap[x, y, z] = type;

@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class DragBlock : MonoBehaviour {
+public class DragBlock : MonoBehaviour
+{
 
     //基本结构
     public GameObject headBlock;
@@ -13,24 +14,27 @@ public class DragBlock : MonoBehaviour {
     public enum BLOCK { STATIC, DRAG, CONFIRM };
     public BLOCK block;
     //拖拽参数
+    public float headBasicY;
+    public float bodyBasicY;
+    public float bodyBasicScale;
     private int energyValue1 = 0;
-    public float posYBasicOffset;
     public float dragSpeedY = 0.2f;
-    
+
     public AudioSource asMove;
     private bool isPlayerAs = false;
     private bool isFirstMove = false;
     private float upMoveY = 0.0f;
-    void updateMap()
+    public void updateMap()
     {
         int heady = System.Convert.ToInt32(headBlock.transform.position.y);
-        for (int i = heady; i >=y; i--)
+        for (int i = heady; i >= y; i--)
         {
             updateToMap(x, i, z);
+            GlobalController.typeMap[x, i, z] = "Base";
         }
         GlobalController.typeMap[x, heady, z] = type;
     }
-    void updateToMap(int x,int y,int z)
+    void updateToMap(int x, int y, int z)
     {
         GlobalController.map[x, y, z] = 1;
     }
@@ -39,7 +43,9 @@ public class DragBlock : MonoBehaviour {
         x = System.Convert.ToInt32(transform.position.x);
         y = System.Convert.ToInt32(transform.position.y);
         z = System.Convert.ToInt32(transform.position.z);
-        posYBasicOffset=headBlock.transform.position.y;
+        headBasicY = headBlock.transform.position.y;
+        bodyBasicY = bodyBlock.transform.position.y;
+        bodyBasicScale = bodyBlock.transform.localScale.y;
         if (asMove == null)
         {
             asMove = GameObject.Find("AudioWallMove").GetComponent<AudioSource>();
@@ -85,13 +91,13 @@ public class DragBlock : MonoBehaviour {
                         }
                         upMoveY = mousY;
                     }
-                    if (mousY >= 0 && posYBasicOffset + mousY < GlobalController.maxy-0.5f && (mousY < EnergyController.energyQuantity - EnergyController.preLevelConsume || Input.GetAxis("Mouse Y") * dragSpeedY < 0))
+                    if (mousY >= 0 && headBasicY - bodyBasicScale + mousY < GlobalController.maxy - 0.7f && (mousY < EnergyController.energyQuantity - EnergyController.preLevelConsume || Input.GetAxis("Mouse Y") * dragSpeedY < 0))
                     {
                         bodyBlock.transform.localScale = new Vector3(mousX, mousY, mousZ);
-                        bodyBlock.transform.position = new Vector3(bodyBlock.transform.position.x, mousY / 2 - 0.45f, bodyBlock.transform.position.z);
+                        bodyBlock.transform.position = new Vector3(bodyBlock.transform.position.x, bodyBasicY - bodyBasicScale/2 + mousY / 2, bodyBlock.transform.position.z);
                         //headBlock
                         mousY = bodyBlock.transform.localScale.y;
-                        headBlock.transform.position = new Vector3(headBlock.transform.position.x, posYBasicOffset + mousY, headBlock.transform.position.z);
+                        headBlock.transform.position = new Vector3(headBlock.transform.position.x, headBasicY - bodyBasicScale+ mousY, headBlock.transform.position.z);
                     }
                     break;
                 case BLOCK.CONFIRM:
@@ -101,14 +107,14 @@ public class DragBlock : MonoBehaviour {
                     int energyValue2 = System.Convert.ToInt32(mousY);
                     //Debug.Log(energyValue2);
                     bodyBlock.transform.localScale = new Vector3(bodyBlock.transform.localScale.x, mousY, bodyBlock.transform.localScale.z);
-                    bodyBlock.transform.position = new Vector3(bodyBlock.transform.position.x, mousY / 2 - 0.45f, bodyBlock.transform.position.z);
+                    bodyBlock.transform.position = new Vector3(bodyBlock.transform.position.x, bodyBasicY - bodyBasicScale / 2 + mousY / 2, bodyBlock.transform.position.z);
                     //调整贴图
                     scaleX = 1;
                     scaleY = mousY;
                     bodyBlock.GetComponent<Renderer>().material.SetTextureScale("_MainTex", new Vector2(scaleX, scaleY));
                     //headBlock
                     mousY = bodyBlock.transform.localScale.y;
-                    headBlock.transform.position = new Vector3(headBlock.transform.position.x, posYBasicOffset + mousY, headBlock.transform.position.z);
+                    headBlock.transform.position = new Vector3(headBlock.transform.position.x, headBasicY - bodyBasicScale + mousY, headBlock.transform.position.z);
                     //更新地图数据
                     GlobalController.isUpdateMap = true;
                     EnergyController.makeValue(energyValue2 - energyValue1);
